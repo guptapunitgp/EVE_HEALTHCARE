@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+credentials/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+pytest-cache-files-*/
+*.log
+*.db
+tests/

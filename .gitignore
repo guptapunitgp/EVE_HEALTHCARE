@@ -24,6 +24,7 @@ build/
 
 # Testing
 .pytest_cache/
+backend/pytest-cache-files-*/
 .coverage
 htmlcov/
 
@@ -37,3 +38,6 @@ Thumbs.db
 # Temporary
 tmp/
 temp/
+
+# Firebase credentials
+backend/credentials/
