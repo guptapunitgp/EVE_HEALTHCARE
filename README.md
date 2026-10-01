@@ -87,7 +87,7 @@ From `backend`, inspect the configured target before upgrading:
     alembic upgrade head
     python -m compileall -q app tests
     ruff check app tests
-    pytest -q
+    python -m pytest -q
 
 From `frontend` run `npm run lint` and `npm run build`. Migrations are additive and preserve existing rows. Review the generated changes and back up production before applying them.
 
