@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 import socket
+import ssl
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from app.core.config import Settings
@@ -41,7 +42,19 @@ def test_upstash_cli_redis_url_is_normalized_to_tls():
         ),
         (
             RedisConnectionError("TLS certificate verify failed for private endpoint"),
-            "tls_handshake",
+            "tls_certificate_verification",
+        ),
+        (
+            RedisConnectionError("SSL: WRONG_VERSION_NUMBER from private endpoint"),
+            "tls_protocol",
+        ),
+        (
+            ssl.SSLError("[SSL: WRONG_VERSION_NUMBER] wrong version number"),
+            "tls_protocol",
+        ),
+        (
+            RedisConnectionError("Unexpected EOF while reading from private endpoint"),
+            "tls_peer_closed",
         ),
         (RedisConnectionError("NOAUTH Authentication required"), "authentication"),
     ],

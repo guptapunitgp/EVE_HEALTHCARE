@@ -28,13 +28,16 @@ def redis_failure_category(error: Exception) -> str:
     current: BaseException | None = error
     seen: set[int] = set()
     messages: list[str] = []
+    tls_error = False
     while current is not None and id(current) not in seen:
         seen.add(id(current))
         messages.extend(arg.lower() for arg in current.args if isinstance(arg, str))
         if isinstance(current, AuthenticationError):
             return "authentication"
+        if isinstance(current, ssl.SSLCertVerificationError):
+            return "tls_certificate_verification"
         if isinstance(current, ssl.SSLError):
-            return "tls_handshake"
+            tls_error = True
         if isinstance(current, socket.gaierror):
             return "dns_resolution"
         if isinstance(current, (TimeoutError, RedisTimeoutError, socket.timeout)):
@@ -72,14 +75,42 @@ def redis_failure_category(error: Exception) -> str:
         return "timeout"
     if any(
         marker in detail
-        for marker in ("certificate", "ssl", "tls", "wrong version number")
+        for marker in (
+            "certificate verify failed",
+            "certificate_verify_failed",
+            "self-signed certificate",
+            "certificate has expired",
+            "unable to get local issuer certificate",
+        )
     ):
-        return "tls_handshake"
+        return "tls_certificate_verification"
+    if any(
+        marker in detail
+        for marker in (
+            "wrong version number",
+            "wrong_version_number",
+            "unsupported protocol",
+            "protocol version",
+            "unknown protocol",
+        )
+    ):
+        return "tls_protocol"
+    if any(
+        marker in detail
+        for marker in (
+            "eof occurred in violation of protocol",
+            "unexpected eof while reading",
+            "connection reset by peer",
+        )
+    ):
+        return "tls_peer_closed"
     if any(
         marker in detail
         for marker in ("network is unreachable", "no route to host", "connection reset")
     ):
         return "network"
+    if tls_error or any(marker in detail for marker in ("certificate", "ssl", "tls")):
+        return "tls_handshake"
     if isinstance(error, RedisConnectionError):
         return "connection"
     return "connection"
