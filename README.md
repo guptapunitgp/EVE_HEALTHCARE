@@ -109,6 +109,6 @@ Notifications are stored in the database outbox in the same transaction as booki
 
 ## Deployment
 
-No deployment target is configured and nothing has been deployed. Before production, provision managed PostgreSQL and Redis, store credentials in a secret manager, use TLS and exact CORS origins, configure backups and restore drills, review migrations, and validate authentication/payment flows using provider test mode. The current payment integration intentionally rejects live Razorpay mode.
+The free-tier demo is deployed with Vercel for the frontend, Render for the API, Neon PostgreSQL, and Upstash Redis. Follow [docs/deployment.md](docs/deployment.md) for service configuration and post-deployment checks. The free-tier setup is for a demo only: Razorpay remains in test mode, notifications are mock-only, and these services do not provide the availability, operational coverage, or healthcare compliance required for real patient use.
 
 See [docs/architecture.md](docs/architecture.md), [docs/api.md](docs/api.md), [docs/database.md](docs/database.md), [docs/security.md](docs/security.md), [docs/testing.md](docs/testing.md), and [docs/deployment.md](docs/deployment.md).
