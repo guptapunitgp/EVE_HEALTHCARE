@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,9 @@ from app.api.router import api_router
 from app.core.redis import redis_client, redis_failure_category
 from app.core.config import settings
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+)
 logger = logging.getLogger("eve.request")
 
 
@@ -23,7 +26,14 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         started = time.perf_counter()
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
-        logger.info("request_id=%s method=%s path=%s status=%s duration_ms=%.2f", request_id, request.method, request.url.path, response.status_code, (time.perf_counter() - started) * 1000)
+        logger.info(
+            "request_id=%s method=%s path=%s status=%s duration_ms=%.2f",
+            request_id,
+            request.method,
+            request.url.path,
+            response.status_code,
+            (time.perf_counter() - started) * 1000,
+        )
         return response
 
 
@@ -34,10 +44,18 @@ async def lifespan(app: FastAPI):
         prefix="eve-healthcare-cache",
     )
     try:
-        try:
-            await redis_client.ping()
-        except Exception as error:
-            logger.warning("redis_startup_check_failed category=%s", redis_failure_category(error))
+        for attempt in range(3):
+            try:
+                await redis_client.ping()
+                break
+            except Exception as error:
+                if attempt == 2:
+                    logger.warning(
+                        "redis_startup_check_failed category=%s",
+                        redis_failure_category(error),
+                    )
+                else:
+                    await asyncio.sleep(attempt + 1)
         yield
     finally:
         await redis_client.aclose()
@@ -52,7 +70,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()],
+    allow_origins=[
+        origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 import socket
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from app.core.config import Settings
 from app.core.redis import redis_failure_category
@@ -32,6 +33,17 @@ def test_upstash_cli_redis_url_is_normalized_to_tls():
         (socket.gaierror("private-hostname"), "dns_resolution"),
         (TimeoutError("private detail"), "timeout"),
         (ConnectionRefusedError("private detail"), "connection_refused"),
+        (
+            RedisConnectionError(
+                "Error 11001 connecting to private-host:6379. No such host is known."
+            ),
+            "dns_resolution",
+        ),
+        (
+            RedisConnectionError("TLS certificate verify failed for private endpoint"),
+            "tls_handshake",
+        ),
+        (RedisConnectionError("NOAUTH Authentication required"), "authentication"),
     ],
 )
 def test_redis_failure_category_does_not_emit_error_details(error, expected):
