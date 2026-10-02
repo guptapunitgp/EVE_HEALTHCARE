@@ -11,16 +11,25 @@ from redis.exceptions import (
 from app.core.config import settings
 
 
-redis_options = {
-    "decode_responses": False,
-    "socket_connect_timeout": 5,
-    "socket_timeout": 5,
-    "health_check_interval": 30,
-}
-if urlsplit(settings.REDIS_URL).scheme == "rediss":
-    redis_options["ssl_cert_reqs"] = ssl.CERT_REQUIRED
+REDIS_SSL_OPTIONS = {"ssl_cert_reqs": "required"}
 
-redis_client = redis.Redis.from_url(settings.REDIS_URL, **redis_options)
+
+def build_redis_options(redis_url: str) -> dict:
+    options = {
+        "decode_responses": False,
+        "socket_connect_timeout": 5,
+        "socket_timeout": 5,
+        "health_check_interval": 30,
+    }
+    if urlsplit(redis_url).scheme == "rediss":
+        options.update(REDIS_SSL_OPTIONS)
+    return options
+
+
+redis_client = redis.Redis.from_url(
+    settings.REDIS_URL,
+    **build_redis_options(settings.REDIS_URL),
+)
 
 
 def redis_failure_category(error: Exception) -> str:

@@ -5,7 +5,11 @@ import ssl
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from app.core.config import Settings
-from app.core.redis import redis_failure_category
+from app.core.redis import (
+    REDIS_SSL_OPTIONS,
+    build_redis_options,
+    redis_failure_category,
+)
 
 
 def test_upstash_tls_url_is_accepted_and_used_by_celery():
@@ -26,6 +30,15 @@ def test_upstash_cli_redis_url_is_normalized_to_tls():
     assert settings.REDIS_URL.startswith("rediss://")
     assert settings.CELERY_BROKER_URL == settings.REDIS_URL
     assert settings.CELERY_RESULT_BACKEND == settings.REDIS_URL
+
+
+def test_redis_tls_options_use_redis_py_accepted_certificate_flag():
+    assert REDIS_SSL_OPTIONS == {"ssl_cert_reqs": "required"}
+    assert (
+        build_redis_options("rediss://example.upstash.io:6379")["ssl_cert_reqs"]
+        == "required"
+    )
+    assert "ssl_cert_reqs" not in build_redis_options("redis://localhost:6379")
 
 
 @pytest.mark.parametrize(
