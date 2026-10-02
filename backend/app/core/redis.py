@@ -81,6 +81,8 @@ def redis_failure_category(error: Exception) -> str:
             "self-signed certificate",
             "certificate has expired",
             "unable to get local issuer certificate",
+            "alert unknown ca",
+            "unknown ca",
         )
     ):
         return "tls_certificate_verification"
@@ -104,6 +106,8 @@ def redis_failure_category(error: Exception) -> str:
         )
     ):
         return "tls_peer_closed"
+    if "alert" in detail and any(marker in detail for marker in ("ssl", "tls")):
+        return "tls_peer_alert"
     if any(
         marker in detail
         for marker in ("network is unreachable", "no route to host", "connection reset")
