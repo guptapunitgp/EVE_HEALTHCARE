@@ -52,6 +52,10 @@ class Settings(BaseSettings):
             valid = False
         if not valid:
             raise ValueError("Redis URLs must use redis:// or rediss:// and include a valid host")
+        # Upstash's CLI can use --tls with a redis:// URL, but redis-py relies
+        # on the scheme to enable TLS. Normalize only known Upstash TCP hosts.
+        if parsed.scheme == "redis" and parsed.hostname.lower().endswith(".upstash.io"):
+            value = parsed._replace(scheme="rediss").geturl()
         return value
 
     @model_validator(mode="after")

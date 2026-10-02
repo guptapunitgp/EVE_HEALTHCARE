@@ -10,7 +10,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 from app.api.router import api_router
-from app.core.redis import redis_client
+from app.core.redis import redis_client, redis_failure_category
 from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
         try:
             await redis_client.ping()
         except Exception as error:
-            logger.warning("redis_startup_check_failed error_type=%s", type(error).__name__)
+            logger.warning("redis_startup_check_failed category=%s", redis_failure_category(error))
         yield
     finally:
         await redis_client.aclose()

@@ -21,7 +21,7 @@ In the existing Render service, set these values in **Environment**. Keep creden
 | `ENABLE_DEV_AUTH` | `false` |
 | `DATABASE_URL` | Neon pooled PostgreSQL URL, with the SQLAlchemy `postgresql+psycopg://` driver prefix |
 | `MIGRATION_DATABASE_URL` | Neon direct (non-pooler) URL, same driver prefix; needed only for migrations |
-| `REDIS_URL` | Rotated Upstash TLS URL (`rediss://...`) |
+| `REDIS_URL` | Rotated Upstash TCP connection URL (`rediss://...`). The app also upgrades an Upstash-hosted `redis://` URL to TLS automatically, but prefer the `rediss://` URL shown in Upstash's TCP connection settings. |
 | `CELERY_BROKER_URL` | Omit to use `REDIS_URL`, or set to the same Upstash TLS URL |
 | `CELERY_RESULT_BACKEND` | Omit to use `REDIS_URL`, or set to the same Upstash TLS URL |
 | `JWT_SECRET_KEY` | A unique random value of at least 32 characters |
@@ -33,6 +33,8 @@ In the existing Render service, set these values in **Environment**. Keep creden
 | `GEMINI_API_KEY` | Optional; needed for the educational assistant |
 
 Set the service health check path to `/api/v1/ready`. Do not set the API base URL to include `/api/v1`; the frontend adds that prefix itself. Do not reset the Neon database. It is already migrated according to the project handoff. For a future planned migration, run `alembic upgrade head` from `backend` with `MIGRATION_DATABASE_URL` pointed at the direct Neon URL, after taking a backup/branch.
+
+Do not paste the full `redis-cli --tls -u ...` command into `REDIS_URL`; that command-line TLS flag does not apply to the application's redis-py client. Set only the URL. redis-py treats `redis://` as plaintext and `rediss://` as TLS; this app normalizes `redis://` only for `.upstash.io` hosts. Startup logs report safe failure categories and never log the URL or credentials.
 
 ## Vercel project
 
