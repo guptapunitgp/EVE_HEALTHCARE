@@ -18,7 +18,8 @@ async def health_check():
 
     return {
         "success": True,
-        "message": "EVE Healthcare API is healthy",
+        "status": "healthy" if redis_status else "degraded",
+        "message": "EVE Healthcare API is responding",
         "redis": redis_status,
     }
 

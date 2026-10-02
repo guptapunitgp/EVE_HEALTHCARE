@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:8000" : "https://eve-healthcare-iqyd.onrender.com");
+
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/v1`,
+  baseURL: `${apiBaseUrl.replace(/\/$/, "")}/api/v1`,
   timeout: 20000,
 });
 

@@ -33,7 +33,14 @@ async def lifespan(app: FastAPI):
         RedisBackend(redis_client),
         prefix="eve-healthcare-cache",
     )
-    yield
+    try:
+        try:
+            await redis_client.ping()
+        except Exception as error:
+            logger.warning("redis_startup_check_failed error_type=%s", type(error).__name__)
+        yield
+    finally:
+        await redis_client.aclose()
 
 
 app = FastAPI(

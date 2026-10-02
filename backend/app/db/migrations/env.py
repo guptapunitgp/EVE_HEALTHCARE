@@ -32,7 +32,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+migration_url = settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL
+# Alembic's ConfigParser treats '%' as interpolation syntax. Neon passwords
+# commonly contain percent-encoded characters, so escape them for this setting.
+config.set_main_option("sqlalchemy.url", migration_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 # other values from the config, defined by the needs of env.py,
